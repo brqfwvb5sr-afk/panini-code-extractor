@@ -59,6 +59,9 @@ OCR ist nie perfekt. Die Erkennung hängt stark von Bildqualität, Perspektive, 
 - das Bild gleichmässig beleuchtet ist
 - wenig Schatten oder Spiegelung auf der Karte liegt
 - die Karte möglichst gerade im Bild steht
+- das Bild in einem browserlesbaren Format vorliegt, zum Beispiel JPG, PNG oder WebP
+
+HEIC-Dateien werden nicht in jedem Desktop-Browser zuverlässig gelesen. Falls ein iPhone-Foto nicht funktioniert, exportiere oder teile es als JPG und lade diese Version hoch.
 
 Die App nutzt eine robuste Code-Erkennung mit folgendem Muster:
 
@@ -73,6 +76,7 @@ Gefundene Codes werden anschliessend normalisiert: Leerzeichen und Bindestriche 
 - React
 - Vite
 - Tesseract.js
+- Lokale Tesseract-Worker-, Core- und Englisch-Sprachdaten im `public/tesseract`-Ordner
 - Kein Backend
 - Keine API-Keys
 - Keine kostenpflichtigen Dienste

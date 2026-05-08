@@ -4,6 +4,12 @@ import { createWorker } from "tesseract.js";
 const CODE_REGEX = /\b[A-Z]{3}\s?[-]?\s?\d{1,3}\b/gi;
 const NORMALIZED_CODE_REGEX = /^[A-Z]{3}\d{1,3}$/;
 const OCR_WHITELIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789- ";
+const ASSET_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const TESSERACT_OPTIONS = {
+  workerPath: `${ASSET_BASE}/tesseract/worker.min.js`,
+  corePath: `${ASSET_BASE}/tesseract/core`,
+  langPath: `${ASSET_BASE}/tesseract/lang`,
+};
 
 function normalizeCode(value) {
   return value.replace(/[\s-]/g, "").toUpperCase();
@@ -34,7 +40,7 @@ function loadImage(file) {
 
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Bild konnte nicht geladen werden."));
+      reject(new Error("Bildformat konnte nicht gelesen werden. Bitte JPG, PNG oder WebP verwenden."));
     };
 
     image.src = url;
@@ -157,7 +163,23 @@ export default function App() {
 
     try {
       worker = await createWorker("eng", 1, {
+        ...TESSERACT_OPTIONS,
+        errorHandler: (workerError) => {
+          console.error(workerError);
+        },
         logger: (message) => {
+          if (message.status && message.status !== "recognizing text") {
+            setProgress((current) =>
+              current
+                ? {
+                    ...current,
+                    phase: message.status,
+                    percent: Math.round((message.progress || 0) * 100),
+                  }
+                : current,
+            );
+          }
+
           if (message.status === "recognizing text") {
             setProgress((current) =>
               current
@@ -180,6 +202,7 @@ export default function App() {
 
       const nextCodes = new Set(codes);
       const nextResults = [];
+      const fileErrors = [];
 
       for (const [index, file] of imageFiles.entries()) {
         setProgress({
@@ -200,11 +223,13 @@ export default function App() {
             failed: false,
           });
         } catch (fileError) {
+          fileErrors.push(`${file.name}: ${fileError.message || "OCR-Fehler"}`);
           nextResults.push({
             id: `${file.name}-${file.lastModified}-${index}-${Date.now()}`,
             fileName: file.name,
             codes: [],
             failed: true,
+            error: fileError.message || "OCR-Fehler",
           });
         }
       }
@@ -214,11 +239,14 @@ export default function App() {
 
       const batchFoundCodes = nextResults.some((result) => result.codes.length > 0);
 
-      if (!batchFoundCodes) {
+      if (fileErrors.length > 0) {
+        setError(fileErrors.join(" "));
+      } else if (!batchFoundCodes) {
         setError("Keine Codes gefunden. Versuche ein schärferes Bild mit gutem Licht.");
       }
     } catch (ocrError) {
-      setError("OCR konnte nicht gestartet werden. Bitte versuche es erneut.");
+      console.error(ocrError);
+      setError("OCR konnte nicht gestartet werden. Bitte Seite neu laden und erneut versuchen.");
     } finally {
       if (worker) {
         await worker.terminate();
@@ -300,7 +328,7 @@ export default function App() {
             onChange={handleFileInput}
           />
           <span className="upload-title">Bilder auswählen oder ablegen</span>
-          <span className="upload-meta">JPG, PNG, HEIC und weitere Bildformate</span>
+          <span className="upload-meta">JPG, PNG, WebP und andere browserlesbare Bildformate</span>
         </label>
 
         {progress && (
@@ -367,7 +395,7 @@ export default function App() {
                   <span>{result.fileName}</span>
                   <strong>
                     {result.failed
-                      ? "Fehler"
+                      ? result.error || "Fehler"
                       : result.codes.length > 0
                         ? `${result.codes.length} Code${result.codes.length === 1 ? "" : "s"}`
                         : "Keine Codes"}
