@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from "react";
-import { createWorker } from "tesseract.js";
 
 const CODE_REGEX = /\b[A-Z]{3}\s?[-]?\s?\d{1,3}\b/gi;
 const NORMALIZED_CODE_REGEX = /^[A-Z]{3}\d{1,3}$/;
@@ -132,6 +131,18 @@ async function recognizeFile(file, worker) {
   };
 }
 
+async function createOcrWorker(onProgress) {
+  const { createWorker } = await import("tesseract.js");
+
+  return createWorker("eng", 1, {
+    ...TESSERACT_OPTIONS,
+    errorHandler: (workerError) => {
+      console.error(workerError);
+    },
+    logger: onProgress,
+  });
+}
+
 export default function App() {
   const fileInputRef = useRef(null);
   const [codes, setCodes] = useState([]);
@@ -162,36 +173,30 @@ export default function App() {
     let worker;
 
     try {
-      worker = await createWorker("eng", 1, {
-        ...TESSERACT_OPTIONS,
-        errorHandler: (workerError) => {
-          console.error(workerError);
-        },
-        logger: (message) => {
-          if (message.status && message.status !== "recognizing text") {
-            setProgress((current) =>
-              current
-                ? {
-                    ...current,
-                    phase: message.status,
-                    percent: Math.round((message.progress || 0) * 100),
-                  }
-                : current,
-            );
-          }
+      worker = await createOcrWorker((message) => {
+        if (message.status && message.status !== "recognizing text") {
+          setProgress((current) =>
+            current
+              ? {
+                  ...current,
+                  phase: message.status,
+                  percent: Math.round((message.progress || 0) * 100),
+                }
+              : current,
+          );
+        }
 
-          if (message.status === "recognizing text") {
-            setProgress((current) =>
-              current
-                ? {
-                    ...current,
-                    phase: "OCR läuft",
-                    percent: Math.round(message.progress * 100),
-                  }
-                : current,
-            );
-          }
-        },
+        if (message.status === "recognizing text") {
+          setProgress((current) =>
+            current
+              ? {
+                  ...current,
+                  phase: "OCR läuft",
+                  percent: Math.round(message.progress * 100),
+                }
+              : current,
+          );
+        }
       });
 
       await worker.setParameters({
