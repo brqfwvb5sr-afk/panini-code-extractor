@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 
-const CODE_REGEX = /\b([A-Z0-9]{3})\s?[-]?\s?([0-9OILSB]{1,3})\b/gi;
-const NORMALIZED_CODE_REGEX = /^[A-Z]{3}\d{1,3}$/;
+const CODE_REGEX = /\b([A-Z0-9]{2,3})\s?[-]?\s?([0-9OQDILSB]{1,3})\b/gi;
+const NORMALIZED_CODE_REGEX = /^(?:[A-Z]{3}|CC)\d{1,3}$/;
 const OCR_WHITELIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789- ";
 const WORLD_CUP_2026_CODES = [
   "ALG",
@@ -53,7 +53,8 @@ const WORLD_CUP_2026_CODES = [
   "USA",
   "UZB",
 ];
-const KNOWN_COUNTRY_CODES = new Set(WORLD_CUP_2026_CODES);
+const SPECIAL_CODE_PREFIXES = ["FWC", "CC"];
+const VALID_CODE_PREFIXES = new Set([...WORLD_CUP_2026_CODES, ...SPECIAL_CODE_PREFIXES]);
 const ASSET_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const TESSERACT_OPTIONS = {
   workerPath: `${ASSET_BASE}/tesseract/worker.min.js`,
@@ -89,27 +90,42 @@ function expandCountryCandidates(value) {
   return candidates;
 }
 
-function normalizeCountry(value) {
+function normalizePrefix(value) {
   const direct = value.toUpperCase();
 
-  if (KNOWN_COUNTRY_CODES.has(direct)) {
+  if (VALID_CODE_PREFIXES.has(direct)) {
     return direct;
   }
 
-  return expandCountryCandidates(direct).find((candidate) => KNOWN_COUNTRY_CODES.has(candidate)) ?? "";
+  return expandCountryCandidates(direct).find((candidate) => VALID_CODE_PREFIXES.has(candidate)) ?? "";
 }
 
-function normalizeCode(value) {
-  const compact = value.replace(/[\s-]/g, "").toUpperCase();
-  const country = normalizeCountry(compact.slice(0, 3));
-  const number = compact
-    .slice(3)
+function normalizeNumber(value) {
+  return value
     .replace(/[OQD]/g, "0")
     .replace(/[IL]/g, "1")
     .replace(/S/g, "5")
     .replace(/B/g, "8");
+}
 
-  return country ? `${country}${number}` : "";
+function normalizeCode(value) {
+  const compact = value.replace(/[\s-]/g, "").toUpperCase();
+
+  for (const prefixLength of [3, 2]) {
+    if (compact.length <= prefixLength) {
+      continue;
+    }
+
+    const prefix = normalizePrefix(compact.slice(0, prefixLength));
+    const number = normalizeNumber(compact.slice(prefixLength));
+    const code = prefix ? `${prefix}${number}` : "";
+
+    if (NORMALIZED_CODE_REGEX.test(code)) {
+      return code;
+    }
+  }
+
+  return "";
 }
 
 function extractCodes(text) {

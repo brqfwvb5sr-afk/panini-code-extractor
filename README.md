@@ -9,7 +9,7 @@ Die App extrahiert nur Codes. Es gibt keine Datenbank, keine Sammlungsliste, kei
 - Ein oder mehrere Bilder hochladen
 - Bilder per Drag & Drop hinzufügen
 - OCR lokal im Browser mit Tesseract.js ausführen
-- Codes im Format `FRA14`, `ENG12`, `NOR2` oder `GER101` erkennen
+- Codes im Format `FRA14`, `ENG12`, `NOR2`, `GER101`, `FWC1` oder `CC12` erkennen
 - Varianten wie `FRA 14`, `fra14` und `FRA-14` normalisieren
 - seitliche oder gedrehte Codes wie `QAT 20` erkennen
 - Doppelte Codes entfernen
@@ -19,7 +19,7 @@ Die App extrahiert nur Codes. Es gibt keine Datenbank, keine Sammlungsliste, kei
 
 ## WM-2026-Teamcodes
 
-Die App kennt die 48 Teamkürzel der FIFA Fussball-Weltmeisterschaft 2026 und nutzt sie beim Bereinigen von OCR-Fehlern:
+Die App kennt die 48 Teamkürzel der FIFA Fussball-Weltmeisterschaft 2026 und nutzt sie beim Bereinigen von OCR-Fehlern. Ausgegeben werden nur Kombinationen aus einem erlaubten Kürzel und einer Zahl, zum Beispiel `SUI7`, `MAR12` oder `QAT20`.
 
 | Team | Code |
 | --- | --- |
@@ -71,6 +71,8 @@ Die App kennt die 48 Teamkürzel der FIFA Fussball-Weltmeisterschaft 2026 und nu
 | Uruguay | `URU` |
 | USA | `USA` |
 | Usbekistan | `UZB` |
+
+Zusätzlich akzeptiert die App die Spezialkürzel `FWC` und `CC`, ebenfalls nur mit Zahl, zum Beispiel `FWC1` oder `CC12`.
 
 ## Lokaler Start
 
@@ -137,13 +139,13 @@ OCR ist nie perfekt. Die Erkennung hängt stark von Bildqualität, Perspektive, 
 
 HEIC-Dateien werden nicht in jedem Desktop-Browser zuverlässig gelesen. Falls ein iPhone-Foto nicht funktioniert, exportiere oder teile es als JPG und lade diese Version hoch.
 
-Die App nutzt eine robuste Code-Erkennung mit folgendem Muster:
+Die App sucht zuerst nach möglichen Code-Kombinationen mit folgendem Muster:
 
 ```txt
-\b[A-Z]{3}\s?[-]?\s?\d{1,3}\b
+\b[A-Z0-9]{2,3}\s?[-]?\s?[0-9OQDILSB]{1,3}\b
 ```
 
-Gefundene Codes werden anschliessend normalisiert: Leerzeichen und Bindestriche werden entfernt, alles wird in Grossbuchstaben umgewandelt.
+Gefundene Codes werden anschliessend normalisiert: Leerzeichen und Bindestriche werden entfernt, alles wird in Grossbuchstaben umgewandelt. Danach bleiben nur Codes übrig, deren Kürzel in der WM-2026-Liste steht oder `FWC` beziehungsweise `CC` ist.
 
 ## Technik
 
