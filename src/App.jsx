@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 
-const CODE_REGEX = /\b([A-Z0-9]{2,3})\s?[-]?\s?([0-9OQDILSB]{1,3})\b/gi;
+const CODE_REGEX = /\b([A-Z0-9]{2,3})[\s-]*([0-9OQDILSBZG]{1,3})\b/gi;
 const NORMALIZED_CODE_REGEX = /^(?:[A-Z]{3}|CC)\d{1,3}$/;
 const OCR_WHITELIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789- ";
 const WORLD_CUP_2026_CODES = [
@@ -55,6 +55,11 @@ const WORLD_CUP_2026_CODES = [
 ];
 const SPECIAL_CODE_PREFIXES = ["FWC", "CC"];
 const VALID_CODE_PREFIXES = new Set([...WORLD_CUP_2026_CODES, ...SPECIAL_CODE_PREFIXES]);
+const VALID_CODE_PREFIX_LIST = [...VALID_CODE_PREFIXES].sort((first, second) => second.length - first.length);
+const EXACT_PREFIX_REGEXES = VALID_CODE_PREFIX_LIST.map((prefix) => ({
+  prefix,
+  regex: new RegExp(`\\b${prefix.split("").join("[\\s-]*")}[\\s-]*([0-9OQDILSBZG]{1,3})\\b`, "gi"),
+}));
 const ASSET_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const TESSERACT_OPTIONS = {
   workerPath: `${ASSET_BASE}/tesseract/worker.min.js`,
@@ -97,14 +102,28 @@ function normalizePrefix(value) {
     return direct;
   }
 
-  return expandCountryCandidates(direct).find((candidate) => VALID_CODE_PREFIXES.has(candidate)) ?? "";
+  const expanded = expandCountryCandidates(direct).find((candidate) => VALID_CODE_PREFIXES.has(candidate));
+
+  if (expanded) {
+    return expanded;
+  }
+
+  const closeMatches = VALID_CODE_PREFIX_LIST.filter(
+    (prefix) =>
+      prefix.length === direct.length &&
+      [...prefix].reduce((distance, char, index) => distance + (char === direct[index] ? 0 : 1), 0) === 1,
+  );
+
+  return closeMatches.length === 1 ? closeMatches[0] : "";
 }
 
 function normalizeNumber(value) {
   return value
     .replace(/[OQD]/g, "0")
     .replace(/[IL]/g, "1")
+    .replace(/Z/g, "2")
     .replace(/S/g, "5")
+    .replace(/G/g, "6")
     .replace(/B/g, "8");
 }
 
@@ -129,8 +148,11 @@ function normalizeCode(value) {
 }
 
 function extractCodes(text) {
-  const matches = [...text.matchAll(CODE_REGEX)].map((match) => match[0]);
-  const normalized = matches
+  const genericMatches = [...text.matchAll(CODE_REGEX)].map((match) => match[0]);
+  const exactPrefixMatches = EXACT_PREFIX_REGEXES.flatMap(({ prefix, regex }) =>
+    [...text.matchAll(new RegExp(regex.source, regex.flags))].map((match) => `${prefix}${match[1]}`),
+  );
+  const normalized = [...genericMatches, ...exactPrefixMatches]
     .map(normalizeCode)
     .filter((code) => NORMALIZED_CODE_REGEX.test(code));
 
@@ -160,28 +182,35 @@ function loadImage(file) {
   });
 }
 
-const FULL_IMAGE_ATTEMPTS = [0, 90, 270, 180].map((rotation) => ({
+const SCAN_ROTATIONS = [0, 90, 270, 180];
+
+const FULL_IMAGE_ATTEMPTS = SCAN_ROTATIONS.map((rotation) => ({
   label: rotation === 0 ? "Ganzes Bild" : `Ganzes Bild ${rotation} Grad`,
   crop: { x: 0, y: 0, width: 1, height: 1 },
-  preferredWidth: 2400,
+  preferredWidth: 2600,
   rotation,
 }));
 
-const FOCUSED_ATTEMPTS = [
-  { label: "linker Bereich", crop: { x: 0, y: 0, width: 0.38, height: 1 } },
-  { label: "rechter Bereich", crop: { x: 0.62, y: 0, width: 0.38, height: 1 } },
-  { label: "oberer Bereich", crop: { x: 0, y: 0, width: 1, height: 0.42 } },
-  { label: "unterer Bereich", crop: { x: 0, y: 0.58, width: 1, height: 0.42 } },
-  { label: "oben links", crop: { x: 0, y: 0, width: 0.55, height: 0.55 } },
-  { label: "oben rechts", crop: { x: 0.45, y: 0, width: 0.55, height: 0.55 } },
+const TEXT_REGION_CROPS = [
+  { label: "linke Hälfte", crop: { x: 0, y: 0, width: 0.56, height: 1 } },
+  { label: "rechte Hälfte", crop: { x: 0.44, y: 0, width: 0.56, height: 1 } },
+  { label: "obere Hälfte", crop: { x: 0, y: 0, width: 1, height: 0.56 } },
+  { label: "untere Hälfte", crop: { x: 0, y: 0.44, width: 1, height: 0.56 } },
+  { label: "oben links", crop: { x: 0, y: 0, width: 0.58, height: 0.58 } },
+  { label: "oben rechts", crop: { x: 0.42, y: 0, width: 0.58, height: 0.58 } },
+  { label: "unten links", crop: { x: 0, y: 0.42, width: 0.58, height: 0.58 } },
+  { label: "unten rechts", crop: { x: 0.42, y: 0.42, width: 0.58, height: 0.58 } },
+  { label: "Mitte", crop: { x: 0.2, y: 0.2, width: 0.6, height: 0.6 } },
 ].flatMap((attempt) =>
-  [0, 90, 270, 180].map((rotation) => ({
+  SCAN_ROTATIONS.map((rotation) => ({
     ...attempt,
     label: rotation === 0 ? attempt.label : `${attempt.label} ${rotation} Grad`,
     preferredWidth: 1800,
     rotation,
   })),
 );
+
+const OCR_ATTEMPTS = [...FULL_IMAGE_ATTEMPTS, ...TEXT_REGION_CROPS];
 
 function preprocessImage(image, attempt) {
   const width = image.naturalWidth || image.width;
@@ -230,33 +259,26 @@ function preprocessImage(image, attempt) {
   return canvas;
 }
 
-async function recognizeFile(file, worker) {
+async function recognizeFile(file, worker, onAttempt) {
   const image = await loadImage(file);
   const textParts = [];
   const codes = new Set();
 
-  for (const attempt of FULL_IMAGE_ATTEMPTS) {
+  for (const [index, attempt] of OCR_ATTEMPTS.entries()) {
+    onAttempt?.({
+      current: index + 1,
+      total: OCR_ATTEMPTS.length,
+      label: attempt.label,
+    });
+
     const canvas = preprocessImage(image, attempt);
     const result = await worker.recognize(canvas, {}, { text: true, blocks: false, hocr: false, tsv: false });
     const text = result.data.text ?? "";
 
     textParts.push(text);
     extractCodes(text).forEach((code) => codes.add(code));
-  }
-
-  if (codes.size < 2) {
-    for (const attempt of FOCUSED_ATTEMPTS) {
-      const canvas = preprocessImage(image, attempt);
-      const result = await worker.recognize(canvas, {}, { text: true, blocks: false, hocr: false, tsv: false });
-      const text = result.data.text ?? "";
-
-      textParts.push(text);
-      extractCodes(text).forEach((code) => codes.add(code));
-
-      if (codes.size >= 2) {
-        break;
-      }
-    }
+    canvas.width = 0;
+    canvas.height = 0;
   }
 
   return {
@@ -354,7 +376,20 @@ export default function App() {
         });
 
         try {
-          const result = await recognizeFile(file, worker);
+          const result = await recognizeFile(file, worker, (scan) => {
+            setProgress((current) =>
+              current
+                ? {
+                    ...current,
+                    scanCurrent: scan.current,
+                    scanTotal: scan.total,
+                    scanLabel: scan.label,
+                    phase: "Bildbereich wird gelesen",
+                    percent: 0,
+                  }
+                : current,
+            );
+          });
           result.codes.forEach((code) => nextCodes.add(code));
           nextResults.push({
             id: `${file.name}-${file.lastModified}-${index}-${Date.now()}`,
@@ -502,7 +537,10 @@ export default function App() {
             <div className="progress-track">
               <div className="progress-fill" style={{ width: `${progress.percent}%` }} />
             </div>
-            <p>{progress.phase}</p>
+            <p>
+              {progress.phase}
+              {progress.scanLabel ? ` · ${progress.scanCurrent}/${progress.scanTotal} · ${progress.scanLabel}` : ""}
+            </p>
           </div>
         )}
 

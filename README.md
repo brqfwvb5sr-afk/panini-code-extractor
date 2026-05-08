@@ -9,9 +9,11 @@ Die App extrahiert nur Codes. Es gibt keine Datenbank, keine Sammlungsliste, kei
 - Ein oder mehrere Bilder hochladen
 - Bilder per Drag & Drop hinzufügen
 - OCR lokal im Browser mit Tesseract.js ausführen
+- ganzes Bild, Hälften, Quadranten und gedrehte Ansichten scannen
 - Codes im Format `FRA14`, `ENG12`, `NOR2`, `GER101`, `FWC1` oder `CC12` erkennen
 - Varianten wie `FRA 14`, `fra14` und `FRA-14` normalisieren
 - seitliche oder gedrehte Codes wie `QAT 20` erkennen
+- andere Texte wie `Panini`, Lizenztexte oder Jahreszahlen ignorieren
 - Doppelte Codes entfernen
 - Anzahl eindeutiger Codes anzeigen
 - Codes in die Zwischenablage kopieren
@@ -142,10 +144,10 @@ HEIC-Dateien werden nicht in jedem Desktop-Browser zuverlässig gelesen. Falls e
 Die App sucht zuerst nach möglichen Code-Kombinationen mit folgendem Muster:
 
 ```txt
-\b[A-Z0-9]{2,3}\s?[-]?\s?[0-9OQDILSB]{1,3}\b
+\b[A-Z0-9]{2,3}[\s-]*[0-9OQDILSBZG]{1,3}\b
 ```
 
-Gefundene Codes werden anschliessend normalisiert: Leerzeichen und Bindestriche werden entfernt, alles wird in Grossbuchstaben umgewandelt. Danach bleiben nur Codes übrig, deren Kürzel in der WM-2026-Liste steht oder `FWC` beziehungsweise `CC` ist.
+Gefundene Codes werden anschliessend normalisiert: Leerzeichen und Bindestriche werden entfernt, alles wird in Grossbuchstaben umgewandelt. Danach bleiben nur Codes übrig, deren Kürzel in der WM-2026-Liste steht oder `FWC` beziehungsweise `CC` ist. Zusätzlich sucht die App nach bekannten Kürzeln auch dann, wenn OCR Leerzeichen zwischen die Buchstaben setzt, zum Beispiel `M A R 12`. Damit auch Fotos mit mehreren Karten besser funktionieren, scannt die App nicht nur das ganze Bild, sondern zusätzlich mehrere überlappende Bildbereiche und alle wichtigen Drehungen. Das kann pro Foto etwas länger dauern, ist aber deutlich gründlicher.
 
 ## Technik
 
