@@ -17,6 +17,61 @@ Die App extrahiert nur Codes. Es gibt keine Datenbank, keine Sammlungsliste, kei
 - Codes in die Zwischenablage kopieren
 - Ergebnisse zurücksetzen
 
+## WM-2026-Teamcodes
+
+Die App kennt die 48 Teamkürzel der FIFA Fussball-Weltmeisterschaft 2026 und nutzt sie beim Bereinigen von OCR-Fehlern:
+
+| Team | Code |
+| --- | --- |
+| Algerien | `ALG` |
+| Argentinien | `ARG` |
+| Australien | `AUS` |
+| Österreich | `AUT` |
+| Belgien | `BEL` |
+| Bosnien und Herzegowina | `BIH` |
+| Brasilien | `BRA` |
+| Kanada | `CAN` |
+| Elfenbeinküste / Côte d'Ivoire | `CIV` |
+| DR Kongo | `COD` |
+| Kolumbien | `COL` |
+| Kap Verde / Cabo Verde | `CPV` |
+| Kroatien | `CRO` |
+| Curaçao | `CUW` |
+| Tschechien | `CZE` |
+| Ecuador | `ECU` |
+| Ägypten | `EGY` |
+| England | `ENG` |
+| Spanien | `ESP` |
+| Frankreich | `FRA` |
+| Deutschland | `GER` |
+| Ghana | `GHA` |
+| Haiti | `HAI` |
+| Iran | `IRN` |
+| Irak | `IRQ` |
+| Jordanien | `JOR` |
+| Japan | `JPN` |
+| Republik Korea / Südkorea | `KOR` |
+| Saudiarabien | `KSA` |
+| Marokko | `MAR` |
+| Mexiko | `MEX` |
+| Niederlande | `NED` |
+| Norwegen | `NOR` |
+| Neuseeland | `NZL` |
+| Panama | `PAN` |
+| Paraguay | `PAR` |
+| Portugal | `POR` |
+| Katar | `QAT` |
+| Südafrika | `RSA` |
+| Schottland | `SCO` |
+| Senegal | `SEN` |
+| Schweiz | `SUI` |
+| Schweden | `SWE` |
+| Tunesien | `TUN` |
+| Türkei | `TUR` |
+| Uruguay | `URU` |
+| USA | `USA` |
+| Usbekistan | `UZB` |
+
 ## Lokaler Start
 
 ```bash
