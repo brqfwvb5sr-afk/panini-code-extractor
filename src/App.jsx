@@ -1,8 +1,101 @@
 import React, { useMemo, useRef, useState } from "react";
 
-const CODE_REGEX = /\b[A-Z]{3}\s?[-]?\s?\d{1,3}\b/gi;
+const CODE_REGEX = /\b([A-Z0-9]{3})\s?[-]?\s?([0-9OILSB]{1,3})\b/gi;
 const NORMALIZED_CODE_REGEX = /^[A-Z]{3}\d{1,3}$/;
 const OCR_WHITELIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789- ";
+const KNOWN_COUNTRY_CODES = new Set([
+  "AFG",
+  "ALB",
+  "ALG",
+  "AND",
+  "ANG",
+  "ARG",
+  "ARM",
+  "AUS",
+  "AUT",
+  "AZE",
+  "BAH",
+  "BEL",
+  "BEN",
+  "BFA",
+  "BHR",
+  "BIH",
+  "BLR",
+  "BOL",
+  "BRA",
+  "BUL",
+  "CAN",
+  "CHI",
+  "CHN",
+  "CIV",
+  "CMR",
+  "COD",
+  "COL",
+  "CRC",
+  "CRO",
+  "CZE",
+  "DEN",
+  "ECU",
+  "EGY",
+  "ENG",
+  "ESP",
+  "EST",
+  "FIN",
+  "FRA",
+  "GAB",
+  "GEO",
+  "GER",
+  "GHA",
+  "GRE",
+  "GUA",
+  "GUI",
+  "HON",
+  "HUN",
+  "IDN",
+  "IRL",
+  "IRN",
+  "IRQ",
+  "ISL",
+  "ISR",
+  "ITA",
+  "JAM",
+  "JPN",
+  "KOR",
+  "KSA",
+  "KUW",
+  "MAR",
+  "MEX",
+  "MLI",
+  "NED",
+  "NGA",
+  "NIR",
+  "NOR",
+  "NZL",
+  "PAN",
+  "PAR",
+  "PER",
+  "POL",
+  "POR",
+  "QAT",
+  "ROU",
+  "RSA",
+  "RUS",
+  "SCO",
+  "SEN",
+  "SRB",
+  "SUI",
+  "SVK",
+  "SVN",
+  "SWE",
+  "TUN",
+  "TUR",
+  "UAE",
+  "UKR",
+  "URU",
+  "USA",
+  "VEN",
+  "WAL",
+]);
 const ASSET_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const TESSERACT_OPTIONS = {
   workerPath: `${ASSET_BASE}/tesseract/worker.min.js`,
@@ -10,12 +103,59 @@ const TESSERACT_OPTIONS = {
   langPath: `${ASSET_BASE}/tesseract/lang`,
 };
 
+function expandCountryCandidates(value) {
+  const replacements = {
+    0: ["O", "Q"],
+    1: ["I", "L"],
+    2: ["Z"],
+    5: ["S"],
+    6: ["G"],
+    8: ["B"],
+  };
+  const chars = value.toUpperCase().split("");
+  const candidates = [""];
+
+  for (const char of chars) {
+    const options = replacements[char] ?? [char];
+    const nextCandidates = [];
+
+    for (const candidate of candidates) {
+      for (const option of options) {
+        nextCandidates.push(`${candidate}${option}`);
+      }
+    }
+
+    candidates.splice(0, candidates.length, ...nextCandidates);
+  }
+
+  return candidates;
+}
+
+function normalizeCountry(value) {
+  const direct = value.toUpperCase();
+
+  if (KNOWN_COUNTRY_CODES.has(direct)) {
+    return direct;
+  }
+
+  return expandCountryCandidates(direct).find((candidate) => KNOWN_COUNTRY_CODES.has(candidate)) ?? "";
+}
+
 function normalizeCode(value) {
-  return value.replace(/[\s-]/g, "").toUpperCase();
+  const compact = value.replace(/[\s-]/g, "").toUpperCase();
+  const country = normalizeCountry(compact.slice(0, 3));
+  const number = compact
+    .slice(3)
+    .replace(/[OQD]/g, "0")
+    .replace(/[IL]/g, "1")
+    .replace(/S/g, "5")
+    .replace(/B/g, "8");
+
+  return country ? `${country}${number}` : "";
 }
 
 function extractCodes(text) {
-  const matches = text.match(CODE_REGEX) ?? [];
+  const matches = [...text.matchAll(CODE_REGEX)].map((match) => match[0]);
   const normalized = matches
     .map(normalizeCode)
     .filter((code) => NORMALIZED_CODE_REGEX.test(code));
@@ -46,48 +186,56 @@ function loadImage(file) {
   });
 }
 
-function preprocessImage(image, mode) {
+const FULL_IMAGE_ATTEMPTS = [0, 90, 270, 180].map((rotation) => ({
+  label: rotation === 0 ? "Ganzes Bild" : `Ganzes Bild ${rotation} Grad`,
+  crop: { x: 0, y: 0, width: 1, height: 1 },
+  preferredWidth: 2400,
+  rotation,
+}));
+
+const FOCUSED_ATTEMPTS = [
+  { label: "linker Bereich", crop: { x: 0, y: 0, width: 0.38, height: 1 } },
+  { label: "rechter Bereich", crop: { x: 0.62, y: 0, width: 0.38, height: 1 } },
+  { label: "oberer Bereich", crop: { x: 0, y: 0, width: 1, height: 0.42 } },
+  { label: "unterer Bereich", crop: { x: 0, y: 0.58, width: 1, height: 0.42 } },
+  { label: "oben links", crop: { x: 0, y: 0, width: 0.55, height: 0.55 } },
+  { label: "oben rechts", crop: { x: 0.45, y: 0, width: 0.55, height: 0.55 } },
+].flatMap((attempt) =>
+  [0, 90, 270, 180].map((rotation) => ({
+    ...attempt,
+    label: rotation === 0 ? attempt.label : `${attempt.label} ${rotation} Grad`,
+    preferredWidth: 1800,
+    rotation,
+  })),
+);
+
+function preprocessImage(image, attempt) {
   const width = image.naturalWidth || image.width;
   const height = image.naturalHeight || image.height;
-
-  const crop =
-    mode === "code"
-      ? {
-          sx: width * 0.42,
-          sy: 0,
-          sw: width * 0.58,
-          sh: height * 0.38,
-        }
-      : {
-          sx: 0,
-          sy: 0,
-          sw: width,
-          sh: height,
-        };
-
-  const preferredWidth = mode === "code" ? 1400 : 1800;
-  const rawScale = preferredWidth / crop.sw;
+  const crop = attempt.crop;
+  const sx = Math.round(width * crop.x);
+  const sy = Math.round(height * crop.y);
+  const sw = Math.round(width * crop.width);
+  const sh = Math.round(height * crop.height);
+  const isQuarterTurn = Math.abs(attempt.rotation % 180) === 90;
+  const targetWidth = isQuarterTurn ? sh : sw;
+  const targetHeight = isQuarterTurn ? sw : sh;
+  const rawScale = attempt.preferredWidth / targetWidth;
   const scale =
-    crop.sw < preferredWidth ? clamp(rawScale, 1.2, 3) : clamp(rawScale, 0.35, 1);
+    targetWidth < attempt.preferredWidth ? clamp(rawScale, 1.1, 3.2) : clamp(rawScale, 0.35, 1);
 
   const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(crop.sw * scale));
-  canvas.height = Math.max(1, Math.round(crop.sh * scale));
+  canvas.width = Math.max(1, Math.round(targetWidth * scale));
+  canvas.height = Math.max(1, Math.round(targetHeight * scale));
 
   const context = canvas.getContext("2d", { willReadFrequently: true });
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, canvas.width, canvas.height);
-  context.drawImage(
-    image,
-    crop.sx,
-    crop.sy,
-    crop.sw,
-    crop.sh,
-    0,
-    0,
-    canvas.width,
-    canvas.height,
-  );
+  context.save();
+  context.translate(canvas.width / 2, canvas.height / 2);
+  context.rotate((attempt.rotation * Math.PI) / 180);
+  context.drawImage(image, sx, sy, sw, sh, -(sw * scale) / 2, -(sh * scale) / 2, sw * scale, sh * scale);
+  context.restore();
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
   const { data } = imageData;
@@ -111,22 +259,34 @@ function preprocessImage(image, mode) {
 async function recognizeFile(file, worker) {
   const image = await loadImage(file);
   const textParts = [];
+  const codes = new Set();
 
-  const codeArea = preprocessImage(image, "code");
-  const codeAreaResult = await worker.recognize(codeArea);
-  textParts.push(codeAreaResult.data.text ?? "");
+  for (const attempt of FULL_IMAGE_ATTEMPTS) {
+    const canvas = preprocessImage(image, attempt);
+    const result = await worker.recognize(canvas, {}, { text: true, blocks: false, hocr: false, tsv: false });
+    const text = result.data.text ?? "";
 
-  let codes = extractCodes(textParts.join("\n"));
+    textParts.push(text);
+    extractCodes(text).forEach((code) => codes.add(code));
+  }
 
-  if (codes.length === 0) {
-    const fullImage = preprocessImage(image, "full");
-    const fullImageResult = await worker.recognize(fullImage);
-    textParts.push(fullImageResult.data.text ?? "");
-    codes = extractCodes(textParts.join("\n"));
+  if (codes.size < 2) {
+    for (const attempt of FOCUSED_ATTEMPTS) {
+      const canvas = preprocessImage(image, attempt);
+      const result = await worker.recognize(canvas, {}, { text: true, blocks: false, hocr: false, tsv: false });
+      const text = result.data.text ?? "";
+
+      textParts.push(text);
+      extractCodes(text).forEach((code) => codes.add(code));
+
+      if (codes.size >= 2) {
+        break;
+      }
+    }
   }
 
   return {
-    codes,
+    codes: [...codes],
     rawText: textParts.join("\n").trim(),
   };
 }

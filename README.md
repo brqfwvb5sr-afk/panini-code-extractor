@@ -11,6 +11,7 @@ Die App extrahiert nur Codes. Es gibt keine Datenbank, keine Sammlungsliste, kei
 - OCR lokal im Browser mit Tesseract.js ausführen
 - Codes im Format `FRA14`, `ENG12`, `NOR2` oder `GER101` erkennen
 - Varianten wie `FRA 14`, `fra14` und `FRA-14` normalisieren
+- seitliche oder gedrehte Codes wie `QAT 20` erkennen
 - Doppelte Codes entfernen
 - Anzahl eindeutiger Codes anzeigen
 - Codes in die Zwischenablage kopieren
