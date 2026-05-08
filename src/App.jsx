@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 
 const CODE_REGEX = /\b[A-Z]{3}\s?[-]?\s?\d{1,3}\b/gi;
 const NORMALIZED_CODE_REGEX = /^[A-Z]{3}\d{1,3}$/;
@@ -145,6 +145,7 @@ async function createOcrWorker(onProgress) {
 
 export default function App() {
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
   const [codes, setCodes] = useState([]);
   const [fileResults, setFileResults] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -286,6 +287,10 @@ export default function App() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = "";
+    }
   }
 
   async function copyCodes() {
@@ -315,7 +320,7 @@ export default function App() {
           </div>
         </header>
 
-        <label
+        <div
           className={`upload-zone ${isDragging ? "is-dragging" : ""} ${isProcessing ? "is-disabled" : ""}`}
           onDragOver={(event) => {
             event.preventDefault();
@@ -332,9 +337,25 @@ export default function App() {
             disabled={isProcessing}
             onChange={handleFileInput}
           />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            disabled={isProcessing}
+            onChange={handleFileInput}
+          />
           <span className="upload-title">Bilder auswählen oder ablegen</span>
           <span className="upload-meta">JPG, PNG, WebP und andere browserlesbare Bildformate</span>
-        </label>
+          <div className="upload-actions">
+            <button type="button" className="upload-button" onClick={() => fileInputRef.current?.click()} disabled={isProcessing}>
+              Bilder auswählen
+            </button>
+            <button type="button" className="upload-button camera-button" onClick={() => cameraInputRef.current?.click()} disabled={isProcessing}>
+              Kamera öffnen
+            </button>
+          </div>
+        </div>
 
         {progress && (
           <div className="progress-card" aria-live="polite">

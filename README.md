@@ -25,6 +25,24 @@ npm run dev
 
 Danach zeigt Vite die lokale URL im Terminal an, meistens `http://localhost:5173`.
 
+## Auf dem Handy testen
+
+Starte die App im Netzwerkmodus:
+
+```bash
+npm run dev:host
+```
+
+Öffne auf dem Handy die Network-URL, die Vite im Terminal anzeigt, zum Beispiel:
+
+```txt
+http://192.168.0.42:5173/
+```
+
+Das Handy muss im selben WLAN sein wie der Computer. Wenn die Seite nicht lädt, blockiert wahrscheinlich die Windows-Firewall den Zugriff auf Port `5173`.
+
+Auf dem Handy gibt es zusätzlich den Button `Kamera öffnen`, der die Rückkamera für ein neues Foto anbietet.
+
 ## Build
 
 ```bash

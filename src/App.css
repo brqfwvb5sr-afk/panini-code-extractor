@@ -166,6 +166,33 @@ h2 {
   font-size: 0.95rem;
 }
 
+.upload-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.upload-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.camera-button {
+  background: #007aff;
+}
+
+.upload-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .progress-card,
 .message {
   margin-top: 18px;
@@ -372,8 +399,15 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .upload-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
   .primary-button,
-  .secondary-button {
+  .secondary-button,
+  .upload-button {
     width: 100%;
   }
 }
