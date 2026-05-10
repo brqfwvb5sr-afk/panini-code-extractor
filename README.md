@@ -1,160 +1,82 @@
-# Panini Code Extractor
+# Panini Collection Sync
 
-Eine kleine Browser-App, die aus hochgeladenen Bildern von Panini-Kartenrückseiten per OCR Kartencodes erkennt und sauber als Liste ausgibt.
-
-Die App extrahiert nur Codes. Es gibt keine Datenbank, keine Sammlungsliste, kein Abhaken und kein Backend.
+Eine cleane iPhone-Webapp zum gemeinsamen Abhaken der Panini-Sammlung. OCR wurde entfernt.
 
 ## Funktionen
 
-- Ein oder mehrere Bilder hochladen
-- Bilder per Drag & Drop hinzufügen
-- OCR lokal im Browser mit Tesseract.js ausführen
-- ganzes Bild, Hälften, Quadranten und gedrehte Ansichten scannen
-- Codes im Format `FRA14`, `ENG12`, `NOR2`, `GER101`, `FWC1` oder `CC12` erkennen
-- Varianten wie `FRA 14`, `fra14` und `FRA-14` normalisieren
-- seitliche oder gedrehte Codes wie `QAT 20` erkennen
-- andere Texte wie `Panini`, Lizenztexte oder Jahreszahlen ignorieren
-- Doppelte Codes entfernen
-- Anzahl eindeutiger Codes anzeigen
-- Codes in die Zwischenablage kopieren
-- Ergebnisse zurücksetzen
+- alle vorher verwendeten WM-2026-Kürzel
+- Länder von `1` bis `20`, zum Beispiel `SUI1` bis `SUI20`
+- `FWC1` bis `FWC19`
+- `CC1` bis `CC12`
+- Länder und Spezialgruppen als ausklappbare Bereiche
+- Suche nach Land, Kürzel oder Karte, zum Beispiel `SUI`, `MAR12`, `FWC`
+- Modus oben: `Alle`, `Fehlende`, `Doppelte`
+- pro Karte Anzahl setzen
+- `0` bedeutet fehlt, `1` bedeutet vorhanden, `2+` bedeutet doppelt oder mehrfach vorhanden
+- Live-Sync zwischen mehreren Handys über den lokalen Sync-Server
+- Speicherung in `data/state.json` auf dem Rechner, auf dem der Server läuft
 
-## WM-2026-Teamcodes
-
-Die App kennt die 48 Teamkürzel der FIFA Fussball-Weltmeisterschaft 2026 und nutzt sie beim Bereinigen von OCR-Fehlern. Ausgegeben werden nur Kombinationen aus einem erlaubten Kürzel und einer Zahl, zum Beispiel `SUI7`, `MAR12` oder `QAT20`.
-
-| Team | Code |
-| --- | --- |
-| Algerien | `ALG` |
-| Argentinien | `ARG` |
-| Australien | `AUS` |
-| Österreich | `AUT` |
-| Belgien | `BEL` |
-| Bosnien und Herzegowina | `BIH` |
-| Brasilien | `BRA` |
-| Kanada | `CAN` |
-| Elfenbeinküste / Côte d'Ivoire | `CIV` |
-| DR Kongo | `COD` |
-| Kolumbien | `COL` |
-| Kap Verde / Cabo Verde | `CPV` |
-| Kroatien | `CRO` |
-| Curaçao | `CUW` |
-| Tschechien | `CZE` |
-| Ecuador | `ECU` |
-| Ägypten | `EGY` |
-| England | `ENG` |
-| Spanien | `ESP` |
-| Frankreich | `FRA` |
-| Deutschland | `GER` |
-| Ghana | `GHA` |
-| Haiti | `HAI` |
-| Iran | `IRN` |
-| Irak | `IRQ` |
-| Jordanien | `JOR` |
-| Japan | `JPN` |
-| Republik Korea / Südkorea | `KOR` |
-| Saudiarabien | `KSA` |
-| Marokko | `MAR` |
-| Mexiko | `MEX` |
-| Niederlande | `NED` |
-| Norwegen | `NOR` |
-| Neuseeland | `NZL` |
-| Panama | `PAN` |
-| Paraguay | `PAR` |
-| Portugal | `POR` |
-| Katar | `QAT` |
-| Südafrika | `RSA` |
-| Schottland | `SCO` |
-| Senegal | `SEN` |
-| Schweiz | `SUI` |
-| Schweden | `SWE` |
-| Tunesien | `TUN` |
-| Türkei | `TUR` |
-| Uruguay | `URU` |
-| USA | `USA` |
-| Usbekistan | `UZB` |
-
-Zusätzlich akzeptiert die App die Spezialkürzel `FWC` und `CC`, ebenfalls nur mit Zahl, zum Beispiel `FWC1` oder `CC12`.
-
-## Lokaler Start
+## Lokal starten
 
 ```bash
 npm install
 npm run dev
 ```
 
-Danach zeigt Vite die lokale URL im Terminal an, meistens `http://localhost:5173`.
+Die App läuft dann normalerweise auf:
 
-## Auf dem Handy testen
-
-Starte die App im Netzwerkmodus:
-
-```bash
-npm run dev:host
+```txt
+http://localhost:5173/
 ```
 
-Öffne auf dem Handy die Network-URL, die Vite im Terminal anzeigt, zum Beispiel:
+Für Handys im selben WLAN öffnest du die Network-URL, die Vite anzeigt, zum Beispiel:
 
 ```txt
 http://192.168.0.42:5173/
 ```
 
-Das Handy muss im selben WLAN sein wie der Computer. Wenn die Seite nicht lädt, blockiert wahrscheinlich die Windows-Firewall den Zugriff auf Port `5173`.
+Wichtig: Für Live-Sync muss der Sync-Server ebenfalls laufen. `npm run dev` startet automatisch beides:
 
-Auf dem Handy gibt es zusätzlich den Button `Kamera öffnen`, der die Rückkamera für ein neues Foto anbietet.
+- Webapp: Port `5173`
+- Sync-Server: Port `4174`
 
-## Build
+Wenn ein Handy nicht synchronisiert, blockiert meistens die Windows-Firewall Port `4174` oder `5173`.
+
+## Produktionsstart
 
 ```bash
 npm run build
+npm start
 ```
 
-Die statischen Dateien werden in `dist` erstellt.
+Danach serviert der Server die gebaute App und die Sync-API auf Port `4174`.
 
-## Deployment auf Vercel
+## Datenmodell
 
-1. Repository zu GitHub hochladen.
-2. In Vercel ein neues Projekt importieren.
-3. Framework Preset: `Vite`.
-4. Build Command: `npm run build`.
-5. Output Directory: `dist`.
-6. Deploy starten.
+Die App speichert nur die Anzahl pro Karte:
 
-## Deployment auf Netlify
-
-1. Repository zu GitHub hochladen.
-2. In Netlify ein neues Site-Projekt aus GitHub importieren.
-3. Build Command: `npm run build`.
-4. Publish Directory: `dist`.
-5. Deploy starten.
-
-## OCR-Einschränkungen
-
-OCR ist nie perfekt. Die Erkennung hängt stark von Bildqualität, Perspektive, Licht und Schärfe ab. Gute Ergebnisse gibt es eher, wenn:
-
-- die Karte scharf fotografiert ist
-- der Code oben rechts gut sichtbar ist
-- das Bild gleichmässig beleuchtet ist
-- wenig Schatten oder Spiegelung auf der Karte liegt
-- die Karte möglichst gerade im Bild steht
-- das Bild in einem browserlesbaren Format vorliegt, zum Beispiel JPG, PNG oder WebP
-
-HEIC-Dateien werden nicht in jedem Desktop-Browser zuverlässig gelesen. Falls ein iPhone-Foto nicht funktioniert, exportiere oder teile es als JPG und lade diese Version hoch.
-
-Die App sucht zuerst nach möglichen Code-Kombinationen mit folgendem Muster:
-
-```txt
-\b[A-Z0-9]{2,3}[\s-]*[0-9OQDILSBZG]{1,3}\b
+```json
+{
+  "SUI15": 1,
+  "MAR12": 3,
+  "FWC1": 2
+}
 ```
 
-Gefundene Codes werden anschliessend normalisiert: Leerzeichen und Bindestriche werden entfernt, alles wird in Grossbuchstaben umgewandelt. Danach bleiben nur Codes übrig, deren Kürzel in der WM-2026-Liste steht oder `FWC` beziehungsweise `CC` ist. Zusätzlich sucht die App nach bekannten Kürzeln auch dann, wenn OCR Leerzeichen zwischen die Buchstaben setzt, zum Beispiel `M A R 12`. Damit auch Fotos mit mehreren Karten besser funktionieren, scannt die App nicht nur das ganze Bild, sondern zusätzlich mehrere überlappende Bildbereiche und alle wichtigen Drehungen. Das kann pro Foto etwas länger dauern, ist aber deutlich gründlicher.
+Damit ist klar:
 
-## Technik
+- `SUI15: 1` ist vorhanden
+- `MAR12: 3` ist vorhanden und zweimal doppelt
+- Karten ohne Eintrag fehlen
 
-- React
-- Vite
-- Tesseract.js
-- Lokale Tesseract-Worker-, Core- und Englisch-Sprachdaten im `public/tesseract`-Ordner
-- Kein Backend
-- Keine API-Keys
-- Keine kostenpflichtigen Dienste
+## Live-Sync
+
+Der Sync ist bewusst einfach und kostenlos:
+
+- kein externer Dienst
+- keine API-Keys
+- keine Accounts
+- Server-Sent Events für Live-Updates
+- JSON-Datei als Speicher
+
+Alle Geräte müssen dieselbe laufende App-URL benutzen. Wenn der Rechner mit dem Server ausgeschaltet ist, gibt es keinen Live-Sync.
