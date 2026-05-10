@@ -459,10 +459,20 @@ h1 {
   padding: 10px 12px;
   border-bottom: 1px solid #f0f2f5;
   background: #fbfcfd;
+  cursor: pointer;
+  outline: 0;
 }
 
 .sticker-row:has(.owned-toggle.is-owned) {
   background: #f2f8ff;
+}
+
+.sticker-row:active {
+  background: #eef6ff;
+}
+
+.sticker-row:focus-visible {
+  box-shadow: inset 0 0 0 3px rgba(0, 122, 255, 0.22);
 }
 
 .sticker-row:last-child {

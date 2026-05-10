@@ -175,6 +175,17 @@ export default function App() {
     }
   }
 
+  function handleStickerRowKeyDown(event, code) {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleOwned(code);
+    }
+  }
+
   return (
     <main className="app-shell">
       <section className="top-panel">
@@ -302,13 +313,25 @@ export default function App() {
                     const duplicateCount = Math.max(0, count - 1);
 
                     return (
-                      <div className="sticker-row" key={card.code}>
+                      <div
+                        className="sticker-row"
+                        key={card.code}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${card.code} ${count > 0 ? "als fehlend markieren" : "als vorhanden markieren"}`}
+                        aria-pressed={count > 0}
+                        onClick={() => toggleOwned(card.code)}
+                        onKeyDown={(event) => handleStickerRowKeyDown(event, card.code)}
+                      >
                         <button
                           type="button"
                           className={`owned-toggle ${count > 0 ? "is-owned" : ""}`}
                           aria-label={`${card.code} ${count > 0 ? "als fehlend markieren" : "als vorhanden markieren"}`}
                           aria-pressed={count > 0}
-                          onClick={() => toggleOwned(card.code)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleOwned(card.code);
+                          }}
                         >
                           {count > 0 ? "✓" : ""}
                         </button>
@@ -320,7 +343,7 @@ export default function App() {
 
                         {duplicateCount > 0 && <span className="duplicate-badge">+{duplicateCount}</span>}
 
-                        <div className="stepper" aria-label={`${card.code} Anzahl`}>
+                        <div className="stepper" aria-label={`${card.code} Anzahl`} onClick={(event) => event.stopPropagation()}>
                           <button type="button" onClick={() => setCardCount(card.code, count - 1)} disabled={count === 0}>
                             −
                           </button>
