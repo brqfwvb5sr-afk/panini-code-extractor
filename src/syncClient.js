@@ -14,6 +14,10 @@ function apiOrigin() {
   return "";
 }
 
+function canUseEventStream(origin) {
+  return origin.includes(":4174") || window.location.port === "4174";
+}
+
 function cleanCounts(rawCounts) {
   if (!rawCounts || typeof rawCounts !== "object") {
     return {};
@@ -42,12 +46,18 @@ export function createSyncConnection({ onState, onStatus }) {
   const origin = apiOrigin();
   const stateUrl = `${origin}/api/state`;
   const eventsUrl = `${origin}/api/events`;
+  const useEventStream = canUseEventStream(origin);
   let closed = false;
   let events = null;
+  let pollTimer = null;
+  let isInitialLoad = true;
 
   async function loadState() {
     try {
-      onStatus("syncing");
+      if (isInitialLoad) {
+        onStatus("syncing");
+      }
+
       const response = await fetch(stateUrl);
 
       if (!response.ok) {
@@ -64,6 +74,8 @@ export function createSyncConnection({ onState, onStatus }) {
       if (!closed) {
         onStatus("offline");
       }
+    } finally {
+      isInitialLoad = false;
     }
   }
 
@@ -98,8 +110,17 @@ export function createSyncConnection({ onState, onStatus }) {
     };
   }
 
+  function startPolling() {
+    pollTimer = window.setInterval(loadState, 2500);
+  }
+
   loadState();
-  connectEvents();
+
+  if (useEventStream) {
+    connectEvents();
+  } else {
+    startPolling();
+  }
 
   return {
     async setCardCount(code, count) {
@@ -122,6 +143,10 @@ export function createSyncConnection({ onState, onStatus }) {
 
       if (events) {
         events.close();
+      }
+
+      if (pollTimer) {
+        window.clearInterval(pollTimer);
       }
     },
   };

@@ -80,3 +80,23 @@ Der Sync ist bewusst einfach und kostenlos:
 - JSON-Datei als Speicher
 
 Alle Geräte müssen dieselbe laufende App-URL benutzen. Wenn der Rechner mit dem Server ausgeschaltet ist, gibt es keinen Live-Sync.
+
+## Überall nutzen
+
+Für Nutzung außerhalb deines WLANs muss die App online gehostet werden und einen Cloud-Speicher haben. Dafür ist das Projekt für Vercel vorbereitet.
+
+1. In Vercel ein neues Projekt aus diesem GitHub-Repository importieren.
+2. Einen Upstash Redis Speicher erstellen.
+3. In Vercel unter `Settings` → `Environment Variables` diese Werte eintragen:
+
+```txt
+UPSTASH_REDIS_REST_URL
+UPSTASH_REDIS_REST_TOKEN
+```
+
+4. Danach neu deployen.
+5. Die Vercel-URL mit deinen Freunden teilen.
+
+Dann funktioniert der Sync überall, solange alle dieselbe Vercel-URL öffnen. Die App fragt den Cloud-Stand automatisch alle paar Sekunden ab, damit Änderungen auf anderen Handys erscheinen.
+
+Ohne diese zwei Upstash-Werte läuft die App zwar, aber der weltweite Sync kann nicht speichern.
