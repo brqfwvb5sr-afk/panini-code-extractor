@@ -1,11 +1,11 @@
 {
-  "name": "Panini Sammlung",
-  "short_name": "Panini",
+  "name": "WM Sammlung",
+  "short_name": "WM 26",
   "description": "Gemeinsame Panini-Sammlung abhaken.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#eef1f5",
-  "theme_color": "#181a1f",
+  "theme_color": "#3157ff",
   "icons": [
     {
       "src": "/icon.svg",
