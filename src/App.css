@@ -1,6 +1,6 @@
 :root {
-  color: #111827;
-  background: #f4f5f7;
+  color: #15171a;
+  background: #f5f6f8;
   font-family:
     system-ui,
     -apple-system,
@@ -20,8 +20,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(180deg, #fbfbfc 0%, #eef0f4 100%);
+  background: #f5f6f8;
 }
 
 button,
@@ -36,18 +35,18 @@ button {
 .app-shell {
   width: min(720px, 100%);
   margin: 0 auto;
-  padding: 14px 12px 44px;
+  padding: 12px 12px 40px;
 }
 
 .top-panel {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 16px;
-  border: 1px solid rgba(229, 231, 235, 0.9);
+  padding: 14px;
+  border: 1px solid rgba(214, 218, 224, 0.85);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
   backdrop-filter: blur(18px);
 }
 
@@ -61,7 +60,7 @@ button {
 
 .app-header {
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 14px;
 }
 
@@ -72,38 +71,40 @@ p {
 }
 
 .eyebrow {
-  color: #6b7280;
-  font-size: 0.76rem;
-  font-weight: 800;
+  color: #7a7f89;
+  font-size: 0.73rem;
+  font-weight: 760;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
 h1 {
   margin-top: 2px;
-  font-size: 2rem;
-  line-height: 1;
+  font-size: 1.72rem;
+  line-height: 1.05;
   letter-spacing: 0;
 }
 
 .sync-pill {
   flex: 0 0 auto;
-  padding: 7px 11px;
+  min-width: 62px;
+  padding: 7px 10px;
   border-radius: 999px;
-  background: #fee2e2;
-  color: #991b1b;
-  font-size: 0.82rem;
-  font-weight: 850;
+  background: #fff1f2;
+  color: #b4232a;
+  font-size: 0.8rem;
+  font-weight: 820;
+  text-align: center;
 }
 
 .sync-online {
-  background: #dcfce7;
-  color: #166534;
+  background: #e8f7ef;
+  color: #147a3e;
 }
 
 .sync-syncing {
-  background: #e0f2fe;
-  color: #075985;
+  background: #edf6ff;
+  color: #0f6cbf;
 }
 
 .search-field {
@@ -112,36 +113,44 @@ h1 {
 }
 
 .search-field span {
-  color: #6b7280;
-  font-size: 0.82rem;
-  font-weight: 750;
+  color: #686f7a;
+  font-size: 0.8rem;
+  font-weight: 720;
 }
 
 .search-field input {
   width: 100%;
-  min-height: 48px;
+  min-height: 50px;
   padding: 0 14px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d8dde4;
   border-radius: 8px;
   background: #f9fafb;
-  color: #111827;
+  color: #15171a;
   outline: 0;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.search-field input::placeholder {
+  color: #9aa1ad;
 }
 
 .search-field input:focus {
   border-color: #007aff;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.14);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.13);
 }
 
 .segmented-control {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  margin-top: 14px;
-  padding: 4px;
+  gap: 3px;
+  margin-top: 12px;
+  padding: 3px;
   border-radius: 8px;
-  background: #e5e7eb;
+  background: #e9edf2;
 }
 
 .segmented-control button,
@@ -155,30 +164,30 @@ h1 {
   min-height: 38px;
   border-radius: 7px;
   background: transparent;
-  color: #4b5563;
-  font-size: 0.9rem;
-  font-weight: 850;
+  color: #5f6670;
+  font-size: 0.88rem;
+  font-weight: 820;
 }
 
 .segmented-control button.is-active {
   background: #ffffff;
-  color: #111827;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14);
+  color: #15171a;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 14px;
+  gap: 7px;
+  margin-top: 12px;
 }
 
 .stats-grid div {
-  min-height: 66px;
+  min-height: 62px;
   padding: 10px;
   border: 1px solid #edf0f4;
   border-radius: 8px;
-  background: #f9fafb;
+  background: #fafbfc;
 }
 
 .stats-grid strong,
@@ -187,15 +196,16 @@ h1 {
 }
 
 .stats-grid strong {
-  font-size: 1.35rem;
+  color: #15171a;
+  font-size: 1.28rem;
   line-height: 1;
 }
 
 .stats-grid span {
   margin-top: 5px;
-  color: #6b7280;
-  font-size: 0.82rem;
-  font-weight: 700;
+  color: #747b86;
+  font-size: 0.8rem;
+  font-weight: 680;
 }
 
 .fold-actions {
@@ -208,44 +218,52 @@ h1 {
   min-height: 34px;
   padding: 0 12px;
   border-radius: 999px;
-  background: #eef2f7;
-  color: #374151;
-  font-size: 0.84rem;
-  font-weight: 800;
+  background: #edf1f5;
+  color: #47505d;
+  font-size: 0.82rem;
+  font-weight: 780;
 }
 
 .group-list {
   display: grid;
-  gap: 10px;
+  gap: 9px;
   margin-top: 12px;
 }
 
 .group-card,
 .empty-state {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
   overflow: hidden;
+  border: 1px solid #e1e5eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.045);
 }
 
 .group-header {
   width: 100%;
   min-height: 58px;
-  padding: 0 12px;
   gap: 9px;
+  padding: 0 12px;
   background: #ffffff;
-  color: #111827;
+  color: #15171a;
   text-align: left;
+}
+
+.group-header:active,
+.fold-actions button:active,
+.segmented-control button:active,
+.stepper button:active,
+.owned-toggle:active {
+  transform: scale(0.985);
 }
 
 .chevron {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 23px;
+  height: 23px;
   place-items: center;
-  color: #6b7280;
-  font-size: 1.6rem;
+  color: #858b95;
+  font-size: 1.55rem;
   line-height: 1;
   transform: rotate(0deg);
   transition: transform 140ms ease;
@@ -256,7 +274,7 @@ h1 {
 }
 
 .group-code {
-  width: 52px;
+  width: 50px;
   font-family:
     ui-monospace,
     SFMono-Regular,
@@ -265,7 +283,7 @@ h1 {
     Consolas,
     "Liberation Mono",
     monospace;
-  font-size: 1.02rem;
+  font-size: 1rem;
   font-weight: 900;
 }
 
@@ -273,30 +291,37 @@ h1 {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: #374151;
-  font-weight: 760;
+  color: #363c45;
+  font-size: 0.96rem;
+  font-weight: 720;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .group-meta {
   flex: 0 0 auto;
-  color: #6b7280;
-  font-size: 0.86rem;
-  font-weight: 800;
+  min-width: 52px;
+  color: #747b86;
+  font-size: 0.84rem;
+  font-weight: 780;
+  text-align: right;
 }
 
 .sticker-list {
   display: grid;
-  border-top: 1px solid #edf0f4;
+  border-top: 1px solid #eef1f5;
 }
 
 .sticker-row {
-  min-height: 58px;
+  min-height: 60px;
   gap: 10px;
   padding: 9px 12px;
-  border-bottom: 1px solid #f1f3f6;
-  background: #fbfcfe;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fbfcfd;
+}
+
+.sticker-row:has(.owned-toggle.is-owned) {
+  background: #f7fbff;
 }
 
 .sticker-row:last-child {
@@ -305,15 +330,19 @@ h1 {
 
 .owned-toggle {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 35px;
+  height: 35px;
   flex: 0 0 auto;
   place-items: center;
-  border: 2px solid #cbd5e1;
+  border: 2px solid #cdd5df;
   border-radius: 8px;
   background: #ffffff;
   color: #ffffff;
   font-weight: 950;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
 }
 
 .owned-toggle.is-owned {
@@ -332,6 +361,7 @@ h1 {
 }
 
 .sticker-info strong {
+  color: #15171a;
   font-family:
     ui-monospace,
     SFMono-Regular,
@@ -341,13 +371,15 @@ h1 {
     "Liberation Mono",
     monospace;
   font-size: 1rem;
+  font-weight: 900;
 }
 
 .sticker-info span {
   overflow: hidden;
-  color: #6b7280;
-  font-size: 0.82rem;
-  font-weight: 650;
+  margin-top: 2px;
+  color: #747b86;
+  font-size: 0.8rem;
+  font-weight: 620;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -357,51 +389,53 @@ h1 {
   min-width: 34px;
   padding: 5px 8px;
   border-radius: 999px;
-  background: #fff7ed;
-  color: #c2410c;
-  font-size: 0.8rem;
-  font-weight: 900;
+  background: #fff4e8;
+  color: #bd5219;
+  font-size: 0.78rem;
+  font-weight: 880;
   text-align: center;
 }
 
 .stepper {
   display: grid;
-  grid-template-columns: 34px 34px 34px;
+  grid-template-columns: 36px 34px 36px;
   align-items: center;
   overflow: hidden;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d8dde4;
   border-radius: 999px;
   background: #ffffff;
 }
 
 .stepper button {
-  height: 34px;
+  height: 36px;
   background: #ffffff;
   color: #007aff;
-  font-size: 1.1rem;
+  font-size: 1.12rem;
   font-weight: 950;
 }
 
 .stepper button:disabled {
-  color: #cbd5e1;
+  color: #c8cfd8;
   cursor: not-allowed;
 }
 
 .stepper span {
   display: grid;
-  height: 34px;
+  height: 36px;
   place-items: center;
-  border-right: 1px solid #eef2f7;
-  border-left: 1px solid #eef2f7;
-  font-size: 0.95rem;
+  border-right: 1px solid #eef1f5;
+  border-left: 1px solid #eef1f5;
+  color: #15171a;
+  font-size: 0.94rem;
   font-weight: 900;
 }
 
 .empty-state {
   display: grid;
-  min-height: 120px;
+  min-height: 128px;
   place-items: center;
-  padding: 18px;
+  padding: 20px;
+  color: #15171a;
   text-align: center;
 }
 
@@ -412,16 +446,20 @@ h1 {
 
 .empty-state span {
   margin-top: 5px;
-  color: #6b7280;
+  color: #747b86;
 }
 
 @media (max-width: 520px) {
   .app-shell {
-    padding: 10px 8px 34px;
+    padding: 8px 8px 32px;
   }
 
   .top-panel {
-    padding: 13px;
+    padding: 12px;
+  }
+
+  h1 {
+    font-size: 1.58rem;
   }
 
   .stats-grid {
@@ -433,7 +471,7 @@ h1 {
   }
 
   .group-code {
-    width: 46px;
+    width: 45px;
   }
 
   .group-name {
@@ -446,6 +484,6 @@ h1 {
   }
 
   .stepper {
-    grid-template-columns: 32px 30px 32px;
+    grid-template-columns: 34px 30px 34px;
   }
 }
