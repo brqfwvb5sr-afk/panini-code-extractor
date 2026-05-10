@@ -111,6 +111,7 @@ export default function App() {
 
     return {
       collected,
+      completion: Math.round((collected / TOTAL_CARDS) * 100),
       missing: TOTAL_CARDS - collected,
       totalCopies,
       duplicateCards,
@@ -178,6 +179,20 @@ export default function App() {
           <span className={`sync-pill sync-${syncStatus}`}>{statusLabel(syncStatus)}</span>
         </header>
 
+        <div className="overview-card">
+          <div className="overview-copy">
+            <span>Fortschritt</span>
+            <strong>{stats.completion}%</strong>
+          </div>
+          <div className="overview-progress" aria-label={`${stats.completion}% komplett`}>
+            <span style={{ width: `${stats.completion}%` }} />
+          </div>
+          <div className="overview-meta">
+            <span>{stats.collected} gesammelt</span>
+            <span>{stats.missing} offen</span>
+          </div>
+        </div>
+
         <label className="search-field">
           <span>Suchen</span>
           <input
@@ -205,7 +220,7 @@ export default function App() {
         <div className="stats-grid" aria-label="Sammlungsstatus">
           <div>
             <strong>{stats.collected}</strong>
-            <span>von {TOTAL_CARDS}</span>
+            <span>gesammelt</span>
           </div>
           <div>
             <strong>{stats.missing}</strong>
@@ -232,6 +247,7 @@ export default function App() {
           const isOpen = normalizedQuery ? true : openGroups.has(group.code);
           const groupCollected = group.cards.filter((card) => countFor(counts, card.code) > 0).length;
           const groupDuplicates = group.cards.reduce((total, card) => total + Math.max(0, countFor(counts, card.code) - 1), 0);
+          const groupCompletion = Math.round((groupCollected / group.total) * 100);
 
           return (
             <article className="group-card" key={group.code}>
@@ -243,10 +259,17 @@ export default function App() {
               >
                 <span className={`chevron ${isOpen ? "is-open" : ""}`}>›</span>
                 <span className="group-code">{group.code}</span>
-                <span className="group-name">{group.name}</span>
+                <span className="group-main">
+                  <span className="group-name">{group.name}</span>
+                  <span className="group-progress" aria-hidden="true">
+                    <span style={{ width: `${groupCompletion}%` }} />
+                  </span>
+                </span>
                 <span className="group-meta">
-                  {groupCollected}/{group.total}
-                  {groupDuplicates > 0 ? ` · +${groupDuplicates}` : ""}
+                  <strong>
+                    {groupCollected}/{group.total}
+                  </strong>
+                  <small>{groupDuplicates > 0 ? `+${groupDuplicates}` : `${groupCompletion}%`}</small>
                 </span>
               </button>
 
