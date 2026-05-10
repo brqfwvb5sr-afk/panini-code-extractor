@@ -67,6 +67,7 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState("syncing");
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState("all");
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState(() => new Set(["SUI"]));
 
   useEffect(() => {
@@ -168,30 +169,32 @@ export default function App() {
     setOpenGroups(new Set());
   }
 
+  function handleSearchKeyDown(event) {
+    if (event.key === "Enter") {
+      event.currentTarget.blur();
+    }
+  }
+
   return (
     <main className="app-shell">
       <section className="top-panel">
-        <header className="app-header">
-          <div>
+        <button
+          type="button"
+          className="summary-toggle"
+          aria-expanded={isSummaryOpen}
+          onClick={() => setIsSummaryOpen((current) => !current)}
+        >
+          <span className={`summary-chevron ${isSummaryOpen ? "is-open" : ""}`}>›</span>
+          <span className="summary-title">
             <p className="eyebrow">Panini 2026</p>
             <h1>Sammlung</h1>
-          </div>
-          <span className={`sync-pill sync-${syncStatus}`}>{statusLabel(syncStatus)}</span>
-        </header>
-
-        <div className="overview-card">
-          <div className="overview-copy">
-            <span>Fortschritt</span>
-            <strong>{stats.completion}%</strong>
-          </div>
-          <div className="overview-progress" aria-label={`${stats.completion}% komplett`}>
+          </span>
+          <span className="summary-mini-progress" aria-label={`${stats.completion}% komplett`}>
             <span style={{ width: `${stats.completion}%` }} />
-          </div>
-          <div className="overview-meta">
-            <span>{stats.collected} gesammelt</span>
-            <span>{stats.missing} offen</span>
-          </div>
-        </div>
+          </span>
+          <span className="summary-count">{stats.collected}/{TOTAL_CARDS}</span>
+          <span className={`sync-pill sync-${syncStatus}`}>{statusLabel(syncStatus)}</span>
+        </button>
 
         <label className="search-field">
           <span>Suchen</span>
@@ -201,45 +204,64 @@ export default function App() {
             placeholder="SUI15, MAR, FWC..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={handleSearchKeyDown}
           />
         </label>
 
-        <div className="segmented-control" aria-label="Ansicht">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              className={mode === filter.id ? "is-active" : ""}
-              onClick={() => setMode(filter.id)}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
+        {isSummaryOpen && (
+          <div className="summary-details">
+            <div className="overview-card">
+              <div className="overview-copy">
+                <span>Fortschritt</span>
+                <strong>{stats.completion}%</strong>
+              </div>
+              <div className="overview-progress" aria-label={`${stats.completion}% komplett`}>
+                <span style={{ width: `${stats.completion}%` }} />
+              </div>
+              <div className="overview-meta">
+                <span>{stats.collected} gesammelt</span>
+                <span>{stats.missing} offen</span>
+              </div>
+            </div>
 
-        <div className="stats-grid" aria-label="Sammlungsstatus">
-          <div>
-            <strong>{stats.collected}</strong>
-            <span>gesammelt</span>
-          </div>
-          <div>
-            <strong>{stats.missing}</strong>
-            <span>fehlen</span>
-          </div>
-          <div>
-            <strong>{stats.duplicateCopies}</strong>
-            <span>doppelt</span>
-          </div>
-        </div>
+            <div className="segmented-control" aria-label="Ansicht">
+              {FILTERS.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  className={mode === filter.id ? "is-active" : ""}
+                  onClick={() => setMode(filter.id)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
 
-        <div className="fold-actions">
-          <button type="button" onClick={expandVisibleGroups}>
-            Alle öffnen
-          </button>
-          <button type="button" onClick={collapseGroups}>
-            Alle schließen
-          </button>
-        </div>
+            <div className="stats-grid" aria-label="Sammlungsstatus">
+              <div>
+                <strong>{stats.collected}</strong>
+                <span>gesammelt</span>
+              </div>
+              <div>
+                <strong>{stats.missing}</strong>
+                <span>fehlen</span>
+              </div>
+              <div>
+                <strong>{stats.duplicateCopies}</strong>
+                <span>doppelt</span>
+              </div>
+            </div>
+
+            <div className="fold-actions">
+              <button type="button" onClick={expandVisibleGroups}>
+                Alle öffnen
+              </button>
+              <button type="button" onClick={collapseGroups}>
+                Alle schließen
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="group-list" aria-label="Kartenliste">
